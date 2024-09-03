@@ -19,22 +19,24 @@ def makedir_for_dir(target_dir, folder):
 # Function for sorting files into folders named by the extension of the files to be sorted
 def sort_files(directory):
     # Iterate the paths to all objects in the given directory to sort them
-    for path in glob.glob(os.path.join(directory, '*'), include_hidden=True):
+    for path in glob.glob(os.path.join(directory, "*"), include_hidden=True):
         # If the path in the loop is a file -- continue
         if os.path.isfile(path):
             # Try it. Select the file extension from the full file name
             try:
                 file_ext = pathlib.Path(path).suffix
-                ext = file_ext.upper().replace('.', '')
+                ext = file_ext.upper().replace(".", "")
                 file_name = pathlib.Path(path).stem
 
                 # If the file starts with a dot or the file has no extension,
                 # create a folder to sort it in called !HIDDEN and
                 # move it there.
-                if file_name.startswith('.') or not file_ext:
-                    target_dir = os.path.join(directory, '!HIDDEN')
+                if file_name.startswith(".") or not file_ext:
+                    target_dir = os.path.join(directory, "!HIDDEN")
                     makedir_for_file(target_dir, path)
-                    print(f"HIDDEN / BLANK FILES {file_name}{file_ext} MOVED TO {target_dir}")
+                    print(
+                        f"HIDDEN / BLANK FILES {file_name}{file_ext} MOVED TO {target_dir}"
+                    )
 
                 # Also if a file has an extension, create a folder for it
                 # Sort it by the name of its extension and move it there
@@ -44,7 +46,7 @@ def sort_files(directory):
                     print(f"FILE {file_name}{file_ext} MOVED TO {target_dir}")
 
             # If for some reason the file could not be moved to the folder created for it
-            # the folder created for it -- print an exception line and also label the
+            # the folder created for it -- print an exception line and also label
             # the file name and extension
             except Exception as e:
                 print(f"FAILED TO MOVE {file_name}{file_ext} -- {e}")
@@ -53,7 +55,7 @@ def sort_files(directory):
 # Function for sorting directories into a folder named DIRS
 def sort_dirs(directory):
     # Iterate the paths to all objects in the given directory to sort them
-    for path in glob.glob(os.path.join(directory, '*'), include_hidden=True):
+    for path in glob.glob(os.path.join(directory, "*"), include_hidden=True):
         # If the path in the loop is a directory -- continue
         if os.path.isdir(path):
             # Try it. Assign to the folder variable the full path to the directory
@@ -62,7 +64,7 @@ def sort_dirs(directory):
                 # If the loop object is a folder -- continue.
                 # Create a folder named DIRS and move the directory there
                 if folder:
-                    target_dir = os.path.join(directory, 'DIRS')
+                    target_dir = os.path.join(directory, "DIRS")
                     makedir_for_dir(target_dir, folder)
                     print(f"DIR {folder.stem} MOVED TO {target_dir}")
             # If for some reason the directory could not be moved to the folder created for it
@@ -73,9 +75,9 @@ def sort_dirs(directory):
 
 
 if __name__ == "__main__":
-    directory = input('DIR FOR SORT (WITHOUT QUOTES): ')
-    q_sort_dirs = input('SORT DIRS? (Y/N): ')
-    if q_sort_dirs.lower() == 'y':
+    directory = input("DIR FOR SORT (WITHOUT QUOTES): ")
+    q_sort_dirs = input("SORT DIRS? (Y/N): ")
+    if q_sort_dirs.lower() == "y":
         sort_dirs(directory)
     else:
         pass
