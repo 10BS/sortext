@@ -1,7 +1,6 @@
 import os
 import platform
 import shutil
-from os.path import splitext
 
 
 if platform.system == "Windows":
@@ -18,16 +17,21 @@ def list_exts(directory: str) -> set:
     return exts
 
 
-def create_move(where: str) -> None:
-    for name in list_exts(where):
-        neue_folder = os.path.join(where, str(name).upper())
-        os.makedirs(neue_folder, exist_ok=True)
-        for entry in os.scandir(where):
-            full_path_entry = entry.path
-            if entry.is_file():
-                shutil.move(full_path_entry, neue_folder)
+def mk_mv2dir(source, destination) -> None:
+    os.makedirs(destination, exist_ok=True)
+    shutil.move(source, destination)
+
+
+def mv(where: str) -> None:
+    for path in os.scandir(where):
+        if path.is_file():
+            root, ext = os.path.splitext(path)
+            if ext[1:]:
+                destination = os.path.join(where, ext[1:].upper())
+                mk_mv2dir(path, destination)
+                print(f"{path.path} moved to {destination}")
 
 
 if __name__ == "__main__":
     path = input("Enter the path: ")
-    create_move(path)
+    mv(path)
