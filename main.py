@@ -1,6 +1,7 @@
 import os
 import platform
 import shutil
+from os.path import splitext
 
 if platform.system == "Windows":
     from colorama import just_fix_windows_console
@@ -16,18 +17,10 @@ def list_exts(directory: str) -> set:
     return exts
 
 
-def make_dirs(where: str, exts: set = None) -> None:
-    exts = list_exts(where)
-    for ext in exts:
-        os.makedirs(ext.upper(), exist_ok=False)
-
-
-def move(source: str, destination: str) -> None:
-    for entry in os.scandir(source):
-        shutil.move(entry, f"./{destination}")
+def create_dir(where) -> None:
+    for name in list_exts(where):
+        os.makedirs(os.path.join(where, str(name).upper()), exist_ok=True)
 
 
 if __name__ == "__main__":
     path = input("Enter the path: ")
-    exts = list_exts(path)
-    make_dirs(path, exts)
