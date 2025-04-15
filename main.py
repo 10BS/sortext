@@ -1,31 +1,57 @@
 import os
 import platform
 import shutil
+from os import DirEntry
 
-if platform.system == "Windows":
-    from colorama import just_fix_windows_console
-    just_fix_windows_console()
+from tinytag import TinyTag
+
+
+def makedirs_movedirs(source: str | DirEntry, destination: str | DirEntry) -> None:
+    os.makedirs(destination, exist_ok=True)
+    shutil.move(source, destination)
+    print(f"{source.path} moved to {destination}")
+
+
+def list_entries(directory: str) -> list:
+    entries = list()
+    for entry in os.scandir(directory):
+        basename, dot_ext = os.path.splitext(entry)
+        ext: str = dot_ext[1:]
+        entry_info = {
+            "path": entry.path,
+            "basename": basename,
+            "ext": ext,
+            "is_file": True if os.path.isfile(entry) else False,
+            "is_dir": True if os.path.isdir(entry) else False,
+        }
+        entries.append(entry_info)
+
+    return entries
+
+
+def filter_entries(directory: str, entries: list | set, *exts: str) -> None:
+    for entry in list_entries(directory):
+        pass
+
 
 
 def sort_entries(where: str) -> None:
     for entry in os.scandir(where):
         if entry.is_file():
-            name, e = os.path.splitext(entry)
-            ext: str = e[1:]
+            name, dot_ext = os.path.splitext(entry)
+            ext: str = dot_ext[1:]
             exec_path: str = os.path.join(where, os.path.basename(__file__))
+            print(entry.path)
+            destination: str = os.path.join(where, ext.upper())
             if ext:
                 if entry.path == exec_path:
                     continue
-                elif entry.path != exec_path:
-                    destination: str = os.path.join(where, ext.upper())
-                    os.makedirs(destination, exist_ok=True)
-                    try:
-                        shutil.move(entry, destination)
-                        print(f"{entry.path} moved to {destination}")
-                    finally:
-                        continue
+                elif entry.name in os.scandir(destination):
+                    print("!")
+                else:
+                    makedirs_movedirs(entry, destination)
 
 
 if __name__ == "__main__":
-    where_sort: str = input("Enter the path: ")
-    sort_entries(where_sort)
+    path: str = input("Enter the path: ")
+    print(list_entries(path))
