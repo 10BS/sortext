@@ -1,57 +1,47 @@
 import os
-import platform
 import shutil
-from os import DirEntry
-
-from tinytag import TinyTag
+from typing import Literal
 
 
-def makedirs_movedirs(source: str | DirEntry, destination: str | DirEntry) -> None:
-    os.makedirs(destination, exist_ok=True)
-    shutil.move(source, destination)
-    print(f"{source.path} moved to {destination}")
-
-
-def list_entries(directory: str) -> list:
-    entries = list()
-    for entry in os.scandir(directory):
-        basename, dot_ext = os.path.splitext(entry)
+def list_entries(
+    path: str = ".", type: Literal["all", "file", "dir"] = "all"
+) -> list[dict[str, str | bool]]:
+    entries: list = []
+    for e in os.scandir(path):
+        basename, dot_ext = os.path.splitext(e.name)
         ext: str = dot_ext[1:]
-        entry_info = {
-            "path": entry.path,
-            "basename": basename,
+        entry = {
+            "path": os.path.abspath(e),
+            "name": basename,
             "ext": ext,
-            "is_file": True if os.path.isfile(entry) else False,
-            "is_dir": True if os.path.isdir(entry) else False,
+            "is_file": True if os.path.isfile(e) else False,
+            "is_dir": True if os.path.isdir(e) else False,
         }
-        entries.append(entry_info)
+        if type == "all":
+            entries.append(entry)
+        elif type == "file":
+            entries.append(entry) if entry.get("is_file") else None
+        elif type == "dir":
+            entries.append(entry) if entry.get("is_dir") else None
 
     return entries
 
 
-def filter_entries(directory: str, entries: list | set, *exts: str) -> None:
-    for entry in list_entries(directory):
-        pass
+def filter_by_ext(path: str, *pool_ext):
+    filtered = []
+    for e in list_entries(path, "file"):
+        if e["ext"] in pool_ext:
+            filtered.append(e)
 
-
-
-def sort_entries(where: str) -> None:
-    for entry in os.scandir(where):
-        if entry.is_file():
-            name, dot_ext = os.path.splitext(entry)
-            ext: str = dot_ext[1:]
-            exec_path: str = os.path.join(where, os.path.basename(__file__))
-            print(entry.path)
-            destination: str = os.path.join(where, ext.upper())
-            if ext:
-                if entry.path == exec_path:
-                    continue
-                elif entry.name in os.scandir(destination):
-                    print("!")
-                else:
-                    makedirs_movedirs(entry, destination)
+    return filtered
 
 
 if __name__ == "__main__":
-    path: str = input("Enter the path: ")
-    print(list_entries(path))
+    path = r"Y:\Downloads\Telegram Desktop"
+    filtered = filter_by_ext(path, "mov", "py", "flac", "MP4", "mp4")
+    for e in filtered:
+        dst = os.path.join(path, e["ext"].upper())
+        src = e["path"]
+        os.makedirs(dst, exist_ok=True)
+        shutil.move(src, dst)
+    print("\nProcess finished with exit code 0")
