@@ -1,61 +1,43 @@
 import os
-from dataclasses import dataclass
-from enum import unique
 from pathlib import Path
+from re import Pattern
 from typing import Literal
 
-
-@dataclass(frozen=True)
-class Entry:
-    path: Path
-    name: str
-    ext: str | list[str]
-    type: Literal["file", "dir"]
-
-
-@dataclass(frozen=True)
-class Exts:
-    common_exts: list[str]
-    unique_exts: list[str]
-
-
-with open("exts.txt", "r", encoding="utf-8") as file:
-    exts_list = file.read().splitlines()
-
-
-def list_exts(path, exts_list) -> Exts:
-    common_exts = []
-    unique_exts = []
-    exts = Exts(common_exts, unique_exts)
-    for entry in os.scandir(path):
-        ext = "".join(Path(entry).suffixes)
-        if ext in exts_list:
-            common_exts.append(ext)
-        elif not ext in exts_list and ext:
-            unique_exts.append(ext)
-    return exts
+from data_classes import Entry
 
 
 def list_entries(
-    path: str = "test",
+    path: str = ".",
     entry_type: Literal["all", "file", "dir"] = "all",
 ) -> list[Entry]:
-    entries: list = []
-    for entry in os.scandir(path):
-        ext = "".join(Path(entry).suffixes)
-        basename = Path(entry).name
+    entries: list[Entry] = []
+    with open("exts.txt", "r", encoding="utf-8") as file:
+        suffixes: tuple[str, ...] = tuple(file.read().splitlines())
+    for dir_entry in os.scandir(path):
+        filename = dir_entry.name
+        matched_suffix = next((ext for ext in suffixes if filename.endswith(ext)), None)
+
+        if matched_suffix:
+            base_name = filename[: -len(matched_suffix)]
+            ext = matched_suffix
+            if base_name == "" and dir_entry.is_dir():
+                base_name = ext
+                ext = ""
+        else:
+            base_name = Path(filename).stem
+            ext = "".join(Path(filename).suffixes)
+
         entry = Entry(
-            path = Path(path, entry).absolute(),
-            name = basename,
-            ext = ext,
-            type = "file" if os.path.isfile(entry) else "dir",
+            abs_path=Path(dir_entry.path).absolute(),
+            name=base_name,
+            ext=ext[1:],
+            type="file" if dir_entry.is_file() else "dir",
         )
-        if entry_type == "all":
-            entries.append(entry)
-        elif entry_type == "file":
-            entries.append(entry) if entry.type == "file" else None
-        elif entry_type == "dir":
-            entries.append(entry) if entry.type == "dir" else None
+
+        if entry_type == "all" \
+            or (entry_type == "file" and entry.type == "file") \
+            or (entry_type == "dir" and entry.type == "dir"):
+                entries.append(entry)
     return entries
 
 
@@ -70,4 +52,4 @@ def filter_entries(path: str, string: str, *pool_ext):
     return filtered
 
 
-print(list_exts(".", exts_list))
+print(list_entries("."))
